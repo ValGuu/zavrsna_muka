@@ -1,25 +1,56 @@
-import logo from './logo.svg';
-import './App.css';
+import React, { useEffect, useState } from "react";
+import UserDetails from "./Components/UserDetails";
+import UserForm from "./Components/UserForm";
 
-function App() {
+const App = () => {
+  const [username, setUsername] = useState("");
+  const [user, setUser] = useState(null);
+  const [repos, setRepos] = useState([]);
+
+  useEffect(() => {
+    if (username) {
+      fetchUserDetails(username);
+    }
+  }, [username]);
+
+  const fetchUserDetails = async (username) => {
+    try {
+      const userResponse = await fetch(
+        `https://api.github.com/users/${username}`
+      );
+      const userData = await userResponse.json();
+
+      const reposResponse = await fetch(
+        `https://api.github.com/users/${username}/repos`
+      );
+      const reposData = await reposResponse.json();
+
+      setUser(userData);
+      setRepos(reposData);
+    } catch (error) {
+      console.error("Error fetching user details:", error);
+    }
+  };
+
+  const handleUserSubmit = (username) => {
+    setUsername(username);
+  };
+
+  const handleReset = () => {
+    setUsername("");
+    setUser(null);
+    setRepos([]);
+  };
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div>
+      {user ? (
+        <UserDetails user={user} repos={repos} onReset={handleReset} />
+      ) : (
+        <UserForm onUserSubmit={handleUserSubmit} />
+      )}
     </div>
   );
-}
+};
 
 export default App;
